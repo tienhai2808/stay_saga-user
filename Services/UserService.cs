@@ -44,4 +44,25 @@ public class UserService(UserRepository userRepo, KeycloakProvider keycloakProvi
   {
     await _keycloakProvider.LogoutAsync(dto.RefreshToken);
   }
+
+  public async Task<AuthResponseDto> RefreshTokenAsync(RefreshTokenDto dto)
+  {
+    return await _keycloakProvider.RefreshTokenAsync(dto.RefreshToken);
+  }
+
+  public async Task<UserResponseDto> UserInfoAsync(string keycloakId)
+  {
+    if (string.IsNullOrWhiteSpace(keycloakId))
+      throw new UnauthorizedException("Invalid access token");
+
+    var user = await _userRepo.GetByKeycloakIdAsync(keycloakId) ?? throw new NotFoundException("User not found");
+
+    return new UserResponseDto(
+      user.Id,
+      user.Email,
+      user.FirstName,
+      user.LastName,
+      user.Phone
+    );
+  }
 }

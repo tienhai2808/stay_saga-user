@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using UserService.DTOs;
@@ -46,6 +47,34 @@ public class UserController(UserDomainService userService) : ControllerBase
       StatusCodes.Status200OK,
       "Logout successful",
       null
+    );
+
+    return Ok(response);
+  }
+
+  [HttpPost("refresh-token")]
+  public async Task<IActionResult> RefreshToken(RefreshTokenDto dto)
+  {
+    var refreshResponse = await _userService.RefreshTokenAsync(dto);
+    var response = new ApiResponse<AuthResponseDto>(
+      StatusCodes.Status200OK,
+      "Token refresh successful",
+      refreshResponse
+    );
+
+    return Ok(response);
+  }
+
+  [HttpGet("me")]
+  [Authorize]
+  public async Task<IActionResult> GetMe()
+  {
+    var keycloakId = User.FindFirstValue("sub");
+    var userResponse = await _userService.UserInfoAsync(keycloakId ?? string.Empty);
+    var response = new ApiResponse<UserResponseDto>(
+      StatusCodes.Status200OK,
+      "Get user info successful",
+      userResponse
     );
 
     return Ok(response);

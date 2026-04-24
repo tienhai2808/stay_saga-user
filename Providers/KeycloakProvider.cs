@@ -132,6 +132,50 @@ public class KeycloakProvider(HttpClient httpClient, IConfiguration config)
       throw new ExternalServiceException($"Keycloak logout failed. Status: {(int)response.StatusCode}");
   }
 
+  public async Task<AuthResponseDto> RefreshTokenAsync(string refreshToken)
+  {
+    var realm = GetRequiredConfig("Keycloak:Realm");
+    var adminUrl = GetRequiredConfig("Keycloak:AdminUrl");
+    var clientId = GetRequiredConfig("Keycloak:ClientId");
+    var clientSecret = GetRequiredConfig("Keycloak:ClientSecret");
+
+    HttpResponseMessage response;
+    try
+    {
+      response = await _httpClient.PostAsync(
+        $"{adminUrl}/realms/{realm}/protocol/openid-connect/token",
+        new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+          { "grant_type", "refresh_token" },
+          { "client_id", clientId },
+          { "client_secret", clientSecret },
+          { "refresh_token", refreshToken }
+        })
+      );
+    }
+    catch (HttpRequestException ex)
+    {
+      throw new ExternalServiceException($"Unable to connect to Keycloak: {ex.Message}");
+    }
+
+    if (response.StatusCode == System.Net.HttpStatusCode.BadRequest
+        || response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+    {
+      throw new UnauthorizedException("Refresh token is invalid or expired");
+    }
+
+    if (!response.IsSuccessStatusCode)
+      throw new ExternalServiceException($"Keycloak refresh token failed. Status: {(int)response.StatusCode}");
+
+    var data = await response.Content.ReadFromJsonAsync<JsonElement>();
+    return new AuthResponseDto(
+      GetRequiredString(data, "access_token"),
+      GetRequiredString(data, "refresh_token"),
+      GetRequiredInt(data, "expires_in"),
+      GetRequiredInt(data, "refresh_expires_in")
+    );
+  }
+
   private async Task<string> GetAdminTokenAsync()
   {
     var realm = GetRequiredConfig("Keycloak:Realm");

@@ -24,4 +24,11 @@ public class UserRepository(AppDbContext db)
   {
     return await _db.Users.FindAsync(id);
   }
+
+  public async Task<User?> GetByKeycloakIdAsync(string keycloakId)
+  {
+    return await _db.Users
+      .AsNoTracking()
+      .FirstOrDefaultAsync(u => u.KeycloakId == keycloakId);
+  }
 }
