@@ -24,7 +24,7 @@ public static class ApiValidationExtensions
 
           var response = new ApiResponse<Dictionary<string, string[]>>(
             StatusCodes.Status400BadRequest,
-            "Dữ liệu đầu vào không hợp lệ",
+            "Invalid input data",
             errors
           );
 

@@ -20,7 +20,7 @@ public class UserRepository(AppDbContext db)
     return await _db.Users.AnyAsync(u => u.Email == email);
   }
 
-  public async Task<User?> GetByIdAsync(Guid id)
+  public async Task<User?> GetByIdAsync(long id)
   {
     return await _db.Users.FindAsync(id);
   }

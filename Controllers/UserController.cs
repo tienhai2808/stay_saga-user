@@ -13,13 +13,26 @@ public class UserController(UserDomainService userService) : ControllerBase
   [HttpPost("register")]
   public async Task<IActionResult> Register(RegisterDto dto)
   {
-    var userResponse = await _userService.RegisterAsync(dto);
-    var response = new ApiResponse<UserResponseDto>(
-      StatusCodes.Status201Created,
-      "Register user thành công",
-      userResponse
+    var loginResponse = await _userService.RegisterAsync(dto);
+    var response = new ApiResponse<AuthResponseDto>(
+      StatusCodes.Status200OK,
+      "Register successful",
+      loginResponse
     );
 
-    return Created($"/users/{userResponse.Id}", response);
+    return Ok(response);
+  }
+
+  [HttpPost("login")]
+  public async Task<IActionResult> Login(LoginDto dto)
+  {
+    var loginResponse = await _userService.LoginAsync(dto);
+    var response = new ApiResponse<AuthResponseDto>(
+      StatusCodes.Status200OK,
+      "Login successful",
+      loginResponse
+    );
+
+    return Ok(response);
   }
 }

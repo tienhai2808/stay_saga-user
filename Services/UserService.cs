@@ -13,29 +13,30 @@ public class UserService(UserRepository userRepo, KeycloakProvider keycloakProvi
   private readonly KeycloakProvider _keycloakProvider = keycloakProvider;
   private readonly IIdGenerator<long> _idGenerator = idGenerator;
 
-  public async Task<UserResponseDto> RegisterAsync(RegisterDto dto)
+  public async Task<AuthResponseDto> RegisterAsync(RegisterDto dto)
   {
     var exists = await _userRepo.ExistsByEmailAsync(dto.Email);
     if (exists)
-      throw new ConflictException("Email đã tồn tại");
+      throw new ConflictException("Email already exists");
 
-    var keycloakId = await _keycloakProvider.CreateUserAsync(dto.Email, dto.Password, dto.FullName);
+    var keycloakId = await _keycloakProvider.CreateUserAsync(dto.Email, dto.Password, dto.FirstName, dto.LastName);
 
     var user = new User
     {
       Id = _idGenerator.CreateId(),
       Email = dto.Email,
-      FullName = dto.FullName,
+      FirstName = dto.FirstName,
+      LastName = dto.LastName,
       Phone = dto.Phone,
       KeycloakId = keycloakId
     };
 
     await _userRepo.CreateAsync(user);
-    return new UserResponseDto(
-      user.Id,
-      user.Email,
-      user.FullName,
-      user.Phone
-    );
+    return await _keycloakProvider.LoginAsync(dto.Email, dto.Password);
+  }
+
+  public async Task<AuthResponseDto> LoginAsync(LoginDto dto)
+  {
+    return await _keycloakProvider.LoginAsync(dto.Email, dto.Password);
   }
 }
