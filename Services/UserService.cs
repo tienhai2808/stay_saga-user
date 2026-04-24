@@ -39,4 +39,9 @@ public class UserService(UserRepository userRepo, KeycloakProvider keycloakProvi
   {
     return await _keycloakProvider.LoginAsync(dto.Email, dto.Password);
   }
+
+  public async Task LogoutAsync(LogoutDto dto)
+  {
+    await _keycloakProvider.LogoutAsync(dto.RefreshToken);
+  }
 }

@@ -11,6 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSnowflakeIdGenerator(builder.Configuration);
 builder.Services.AddApiControllers();
 builder.Services.AddOpenApi();
+builder.Services.AddKeycloakJwtAuth(builder.Configuration);
 builder.Services.AddDbContext<AppDbContext>(options =>
   options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
 builder.Services.AddScoped<UserRepository>();
@@ -24,6 +25,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseMiddleware<ExceptionHandlerMiddleware>();
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
