@@ -69,10 +69,12 @@ namespace UserService.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Email")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("ux_users_email");
 
                     b.HasIndex("KeycloakId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("ux_users_keycloak_id");
 
                     b.ToTable("users", (string)null);
                 });

@@ -1,7 +1,7 @@
 namespace UserService.DTOs;
 
 public sealed record UserResponseDto(
-  long Id,
+  string Id,
   string Email,
   string FirstName,
   string LastName,

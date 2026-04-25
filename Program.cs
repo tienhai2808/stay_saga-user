@@ -1,10 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using UserService.Data;
-using UserService.Extensions;
-using UserService.Middleware;
 using UserService.Providers;
 using UserService.Repositories;
 using UserDomainService = UserService.Services.UserService;
+using Common.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,7 +12,9 @@ builder.Services.AddApiControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddKeycloakJwtAuth(builder.Configuration);
 builder.Services.AddDbContext<AppDbContext>(options =>
-  options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
+  options.UseNpgsql(
+    builder.Configuration.GetConnectionString("Default"),
+    npgsqlOptions => npgsqlOptions.MigrationsHistoryTable("__ef_migrations_history")));
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<UserDomainService>();
 builder.Services.AddHttpClient<KeycloakProvider>();
@@ -21,10 +22,11 @@ builder.Services.AddHttpClient<KeycloakProvider>();
 var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
-  app.MapOpenApi();
+    app.MapOpenApi();
 }
 
-app.UseMiddleware<ExceptionHandlerMiddleware>();
+app.UseStaySagaDefaults();
+app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
