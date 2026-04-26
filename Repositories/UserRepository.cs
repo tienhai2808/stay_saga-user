@@ -27,7 +27,7 @@ public class UserRepository(AppDbContext db)
     public async Task<User?> GetByKeycloakIdAsync(string keycloakId)
     {
         return await _db.Users
-          .AsNoTracking()
-          .FirstOrDefaultAsync(u => u.KeycloakId == keycloakId);
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.KeycloakId == keycloakId);
     }
 }

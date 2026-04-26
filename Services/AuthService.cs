@@ -7,7 +7,7 @@ using UserService.Repositories;
 
 namespace UserService.Services;
 
-public class UserService(UserRepository userRepo, KeycloakProvider keycloakProvider, IIdGenerator<long> idGenerator)
+public class AuthService(UserRepository userRepo, KeycloakProvider keycloakProvider, IIdGenerator<long> idGenerator)
 {
     private readonly UserRepository _userRepo = userRepo;
     private readonly KeycloakProvider _keycloakProvider = keycloakProvider;

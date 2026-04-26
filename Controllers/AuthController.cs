@@ -2,21 +2,21 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using UserService.DTOs;
-using UserDomainService = UserService.Services.UserService;
+using UserService.Services;
 using Common.Response;
 
 namespace UserService.Controllers;
 
 [ApiController]
-[Route("users")]
-public class UserController(UserDomainService userService) : ControllerBase
+[Route("auth")]
+public class AuthController(AuthService authService) : ControllerBase
 {
-    private readonly UserDomainService _userService = userService;
+    private readonly AuthService _authService = authService;
 
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterDto dto)
     {
-        var loginResponse = await _userService.RegisterAsync(dto);
+        var loginResponse = await _authService.RegisterAsync(dto);
         var response = HttpApiResponse<AuthResponseDto>.Success(
           loginResponse,
           "Register successful"
@@ -28,7 +28,7 @@ public class UserController(UserDomainService userService) : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginDto dto)
     {
-        var loginResponse = await _userService.LoginAsync(dto);
+        var loginResponse = await _authService.LoginAsync(dto);
         var response = HttpApiResponse<AuthResponseDto>.Success(
           loginResponse,
           "Login successful"
@@ -41,7 +41,7 @@ public class UserController(UserDomainService userService) : ControllerBase
     [Authorize]
     public async Task<IActionResult> Logout(LogoutDto dto)
     {
-        await _userService.LogoutAsync(dto);
+        await _authService.LogoutAsync(dto);
         var response = HttpApiResponse<object>.Success(
           null,
           "Logout successful"
@@ -53,7 +53,7 @@ public class UserController(UserDomainService userService) : ControllerBase
     [HttpPost("refresh-token")]
     public async Task<IActionResult> RefreshToken(RefreshTokenDto dto)
     {
-        var refreshResponse = await _userService.RefreshTokenAsync(dto);
+        var refreshResponse = await _authService.RefreshTokenAsync(dto);
         var response = HttpApiResponse<AuthResponseDto>.Success(
           refreshResponse,
           "Token refresh successful"
@@ -62,12 +62,12 @@ public class UserController(UserDomainService userService) : ControllerBase
         return Ok(response);
     }
 
-    [HttpGet("me")]
+    [HttpGet("userinfo")]
     [Authorize]
-    public async Task<IActionResult> GetMe()
+    public async Task<IActionResult> UserInfo()
     {
         var keycloakId = User.FindFirstValue("sub");
-        var userResponse = await _userService.UserInfoAsync(keycloakId ?? string.Empty);
+        var userResponse = await _authService.UserInfoAsync(keycloakId ?? string.Empty);
         var response = HttpApiResponse<UserResponseDto>.Success(
           userResponse,
           "Get user info successful"
