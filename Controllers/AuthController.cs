@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using UserService.DTOs;
 using UserService.Services;
-using Common.Response;
+using Common.DTOs;
 
 namespace UserService.Controllers;
 
@@ -17,7 +17,7 @@ public class AuthController(AuthService authService) : ControllerBase
     public async Task<IActionResult> Register(RegisterDto dto)
     {
         var loginResponse = await _authService.RegisterAsync(dto);
-        var response = HttpApiResponse<AuthResponseDto>.Success(
+        var response = HttpApiResponseDto<AuthResponseDto>.Success(
           loginResponse,
           "Register successful"
         );
@@ -29,7 +29,7 @@ public class AuthController(AuthService authService) : ControllerBase
     public async Task<IActionResult> Login(LoginDto dto)
     {
         var loginResponse = await _authService.LoginAsync(dto);
-        var response = HttpApiResponse<AuthResponseDto>.Success(
+        var response = HttpApiResponseDto<AuthResponseDto>.Success(
           loginResponse,
           "Login successful"
         );
@@ -42,7 +42,7 @@ public class AuthController(AuthService authService) : ControllerBase
     public async Task<IActionResult> Logout(LogoutDto dto)
     {
         await _authService.LogoutAsync(dto);
-        var response = HttpApiResponse<object>.Success(
+        var response = HttpApiResponseDto<object>.Success(
           null,
           "Logout successful"
         );
@@ -54,7 +54,7 @@ public class AuthController(AuthService authService) : ControllerBase
     public async Task<IActionResult> RefreshToken(RefreshTokenDto dto)
     {
         var refreshResponse = await _authService.RefreshTokenAsync(dto);
-        var response = HttpApiResponse<AuthResponseDto>.Success(
+        var response = HttpApiResponseDto<AuthResponseDto>.Success(
           refreshResponse,
           "Token refresh successful"
         );
@@ -68,7 +68,7 @@ public class AuthController(AuthService authService) : ControllerBase
     {
         var keycloakId = User.FindFirstValue("sub");
         var userResponse = await _authService.UserInfoAsync(keycloakId ?? string.Empty);
-        var response = HttpApiResponse<UserResponseDto>.Success(
+        var response = HttpApiResponseDto<UserResponseDto>.Success(
           userResponse,
           "Get user info successful"
         );
