@@ -8,26 +8,26 @@ public class UserRepository(AppDbContext db)
 {
     private readonly AppDbContext _db = db;
 
-    public async Task CreateAsync(User user)
+    public async Task CreateAsync(User user, CancellationToken cancellationToken = default)
     {
         _db.Users.Add(user);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<bool> ExistsByEmailAsync(string email)
+    public async Task<bool> ExistsByEmailAsync(string email, CancellationToken cancellationToken = default)
     {
-        return await _db.Users.AnyAsync(u => u.Email == email);
+        return await _db.Users.AnyAsync(u => u.Email == email, cancellationToken);
     }
 
-    public async Task<User?> GetByIdAsync(long id)
+    public async Task<User?> GetByIdAsync(long id, CancellationToken cancellationToken = default)
     {
-        return await _db.Users.FindAsync(id);
+        return await _db.Users.FindAsync(id, cancellationToken);
     }
 
-    public async Task<User?> GetByKeycloakIdAsync(string keycloakId)
+    public async Task<User?> GetByKeycloakIdAsync(string keycloakId, CancellationToken cancellationToken = default)
     {
         return await _db.Users
             .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.KeycloakId == keycloakId);
+            .FirstOrDefaultAsync(u => u.KeycloakId == keycloakId, cancellationToken);
     }
 }

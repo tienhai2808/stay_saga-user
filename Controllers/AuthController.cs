@@ -14,9 +14,9 @@ public class AuthController(AuthService authService) : ControllerBase
     private readonly AuthService _authService = authService;
 
     [HttpPost("register")]
-    public async Task<IActionResult> Register(RegisterDto dto)
+    public async Task<IActionResult> Register(RegisterDto dto, CancellationToken cancellationToken)
     {
-        var loginResponse = await _authService.RegisterAsync(dto);
+        var loginResponse = await _authService.RegisterAsync(dto, cancellationToken);
         var response = HttpApiResponseDto<AuthResponseDto>.Success(
           loginResponse,
           "Register successful"
@@ -26,9 +26,9 @@ public class AuthController(AuthService authService) : ControllerBase
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login(LoginDto dto)
+    public async Task<IActionResult> Login(LoginDto dto, CancellationToken cancellationToken)
     {
-        var loginResponse = await _authService.LoginAsync(dto);
+        var loginResponse = await _authService.LoginAsync(dto, cancellationToken);
         var response = HttpApiResponseDto<AuthResponseDto>.Success(
           loginResponse,
           "Login successful"
@@ -39,9 +39,9 @@ public class AuthController(AuthService authService) : ControllerBase
 
     [HttpPost("logout")]
     [Authorize]
-    public async Task<IActionResult> Logout(LogoutDto dto)
+    public async Task<IActionResult> Logout(LogoutDto dto, CancellationToken cancellationToken)
     {
-        await _authService.LogoutAsync(dto);
+        await _authService.LogoutAsync(dto, cancellationToken);
         var response = HttpApiResponseDto<object>.Success(
           null,
           "Logout successful"
@@ -51,9 +51,9 @@ public class AuthController(AuthService authService) : ControllerBase
     }
 
     [HttpPost("refresh-token")]
-    public async Task<IActionResult> RefreshToken(RefreshTokenDto dto)
+    public async Task<IActionResult> RefreshToken(RefreshTokenDto dto, CancellationToken cancellationToken)
     {
-        var refreshResponse = await _authService.RefreshTokenAsync(dto);
+        var refreshResponse = await _authService.RefreshTokenAsync(dto, cancellationToken);
         var response = HttpApiResponseDto<AuthResponseDto>.Success(
           refreshResponse,
           "Token refresh successful"
@@ -64,10 +64,10 @@ public class AuthController(AuthService authService) : ControllerBase
 
     [HttpGet("userinfo")]
     [Authorize]
-    public async Task<IActionResult> UserInfo()
+    public async Task<IActionResult> UserInfo(CancellationToken cancellationToken)
     {
         var keycloakId = User.FindFirstValue("sub");
-        var userResponse = await _authService.UserInfoAsync(keycloakId ?? string.Empty);
+        var userResponse = await _authService.UserInfoAsync(keycloakId ?? string.Empty, cancellationToken);
         var response = HttpApiResponseDto<UserResponseDto>.Success(
           userResponse,
           "Get user info successful"

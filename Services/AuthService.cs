@@ -13,9 +13,12 @@ public class AuthService(UserRepository userRepo, KeycloakProvider keycloakProvi
     private readonly KeycloakProvider _keycloakProvider = keycloakProvider;
     private readonly IIdGenerator<long> _idGenerator = idGenerator;
 
-    public async Task<AuthResponseDto> RegisterAsync(RegisterDto dto)
+    public async Task<AuthResponseDto> RegisterAsync(
+        RegisterDto dto, 
+        CancellationToken cancellationToken = default
+    )
     {
-        var exists = await _userRepo.ExistsByEmailAsync(dto.Email);
+        var exists = await _userRepo.ExistsByEmailAsync(dto.Email, cancellationToken);
         if (exists)
             throw new ConflictException("Email already exists");
 
@@ -31,31 +34,32 @@ public class AuthService(UserRepository userRepo, KeycloakProvider keycloakProvi
             KeycloakId = keycloakId
         };
 
-        await _userRepo.CreateAsync(user);
-        return await _keycloakProvider.LoginAsync(dto.Email, dto.Password);
+        await _userRepo.CreateAsync(user, cancellationToken);
+        return await _keycloakProvider.LoginAsync(dto.Email, dto.Password, cancellationToken);
     }
 
-    public async Task<AuthResponseDto> LoginAsync(LoginDto dto)
+    public async Task<AuthResponseDto> LoginAsync(LoginDto dto, CancellationToken cancellationToken = default)
     {
-        return await _keycloakProvider.LoginAsync(dto.Email, dto.Password);
+        return await _keycloakProvider.LoginAsync(dto.Email, dto.Password, cancellationToken);
     }
 
-    public async Task LogoutAsync(LogoutDto dto)
+    public async Task LogoutAsync(LogoutDto dto, CancellationToken cancellationToken = default)
     {
-        await _keycloakProvider.LogoutAsync(dto.RefreshToken);
+        await _keycloakProvider.LogoutAsync(dto.RefreshToken, cancellationToken);
     }
 
-    public async Task<AuthResponseDto> RefreshTokenAsync(RefreshTokenDto dto)
+    public async Task<AuthResponseDto> RefreshTokenAsync(RefreshTokenDto dto, CancellationToken cancellationToken = default)
     {
-        return await _keycloakProvider.RefreshTokenAsync(dto.RefreshToken);
+        return await _keycloakProvider.RefreshTokenAsync(dto.RefreshToken, cancellationToken);
     }
 
-    public async Task<UserResponseDto> UserInfoAsync(string keycloakId)
+    public async Task<UserResponseDto> UserInfoAsync(string keycloakId, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(keycloakId))
             throw new UnauthorizedException("Invalid access token");
 
-        var user = await _userRepo.GetByKeycloakIdAsync(keycloakId) ?? throw new NotFoundException("User not found");
+        var user = await _userRepo.GetByKeycloakIdAsync(keycloakId, cancellationToken) ?? 
+            throw new NotFoundException("User not found");
 
         return new UserResponseDto(
             user.Id.ToString(),

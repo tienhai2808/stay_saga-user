@@ -52,7 +52,7 @@ public class KeycloakProvider(HttpClient httpClient, IConfiguration config)
         return keycloakId ?? throw new ExternalServiceException("Unable to retrieve Keycloak user ID");
     }
 
-    public async Task<AuthResponseDto> LoginAsync(string email, string password)
+    public async Task<AuthResponseDto> LoginAsync(string email, string password, CancellationToken cancellationToken = default)
     {
         var realm = GetRequiredConfig("Keycloak:Realm");
         var adminUrl = GetRequiredConfig("Keycloak:AdminUrl");
@@ -71,7 +71,8 @@ public class KeycloakProvider(HttpClient httpClient, IConfiguration config)
                     { "client_secret", clientSecret },
                     { "username", email },
                     { "password", password }
-                }));
+                }), 
+                cancellationToken);
         }
         catch (HttpRequestException ex)
         {
@@ -87,16 +88,16 @@ public class KeycloakProvider(HttpClient httpClient, IConfiguration config)
         if (!response.IsSuccessStatusCode)
             throw new ExternalServiceException($"Keycloak login failed. Status: {(int)response.StatusCode}");
 
-        var data = await response.Content.ReadFromJsonAsync<JsonElement>();
+        var data = await response.Content.ReadFromJsonAsync<JsonElement>(cancellationToken);
         return new AuthResponseDto(
-        GetRequiredString(data, "access_token"),
-        GetRequiredString(data, "refresh_token"),
-        GetRequiredInt(data, "expires_in"),
-        GetRequiredInt(data, "refresh_expires_in")
+            GetRequiredString(data, "access_token"),
+            GetRequiredString(data, "refresh_token"),
+            GetRequiredInt(data, "expires_in"),
+            GetRequiredInt(data, "refresh_expires_in")
         );
     }
 
-    public async Task LogoutAsync(string refreshToken)
+    public async Task LogoutAsync(string refreshToken, CancellationToken cancellationToken = default)
     {
         var realm = GetRequiredConfig("Keycloak:Realm");
         var adminUrl = GetRequiredConfig("Keycloak:AdminUrl");
@@ -113,8 +114,8 @@ public class KeycloakProvider(HttpClient httpClient, IConfiguration config)
                     { "client_id", clientId },
                     { "client_secret", clientSecret },
                     { "refresh_token", refreshToken }
-                })
-);
+                }), 
+                cancellationToken);
         }
         catch (HttpRequestException ex)
         {
@@ -131,7 +132,7 @@ public class KeycloakProvider(HttpClient httpClient, IConfiguration config)
             throw new ExternalServiceException($"Keycloak logout failed. Status: {(int)response.StatusCode}");
     }
 
-    public async Task<AuthResponseDto> RefreshTokenAsync(string refreshToken)
+    public async Task<AuthResponseDto> RefreshTokenAsync(string refreshToken, CancellationToken cancellationToken = default)
     {
         var realm = GetRequiredConfig("Keycloak:Realm");
         var adminUrl = GetRequiredConfig("Keycloak:AdminUrl");
@@ -149,7 +150,8 @@ public class KeycloakProvider(HttpClient httpClient, IConfiguration config)
                     { "client_id", clientId },
                     { "client_secret", clientSecret },
                     { "refresh_token", refreshToken }
-                }));
+                }),
+                cancellationToken);
         }
         catch (HttpRequestException ex)
         {
@@ -165,7 +167,7 @@ public class KeycloakProvider(HttpClient httpClient, IConfiguration config)
         if (!response.IsSuccessStatusCode)
             throw new ExternalServiceException($"Keycloak refresh token failed. Status: {(int)response.StatusCode}");
 
-        var data = await response.Content.ReadFromJsonAsync<JsonElement>();
+        var data = await response.Content.ReadFromJsonAsync<JsonElement>(cancellationToken);
         return new AuthResponseDto(
             GetRequiredString(data, "access_token"),
             GetRequiredString(data, "refresh_token"),
@@ -174,7 +176,7 @@ public class KeycloakProvider(HttpClient httpClient, IConfiguration config)
         );
     }
 
-    private async Task<string> GetAdminTokenAsync()
+    private async Task<string> GetAdminTokenAsync(CancellationToken cancellationToken = default)
     {
         var realm = GetRequiredConfig("Keycloak:Realm");
         var adminUrl = GetRequiredConfig("Keycloak:AdminUrl");
@@ -191,7 +193,8 @@ public class KeycloakProvider(HttpClient httpClient, IConfiguration config)
                     { "grant_type", "client_credentials" },
                     { "client_id", clientId },
                     { "client_secret", clientSecret }
-                }));
+                }),
+                cancellationToken);
         }
         catch (HttpRequestException ex)
         {
@@ -201,7 +204,7 @@ public class KeycloakProvider(HttpClient httpClient, IConfiguration config)
         if (!response.IsSuccessStatusCode)
             throw new ExternalServiceException($"Failed to get admin token. Status: {(int)response.StatusCode}");
 
-        var data = await response.Content.ReadFromJsonAsync<JsonElement>();
+        var data = await response.Content.ReadFromJsonAsync<JsonElement>(cancellationToken);
         if (!data.TryGetProperty("access_token", out var tokenElement))
             throw new ExternalServiceException("Missing access_token in Keycloak response");
 
