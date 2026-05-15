@@ -19,12 +19,12 @@ public class UserRepository(AppDbContext db)
         return await _db.Users.AnyAsync(u => u.Email == email, cancellationToken);
     }
 
-    public async Task<User?> GetByIdAsync(long id, CancellationToken cancellationToken = default)
+    public async Task<User?> FindByIdAsync(long id, CancellationToken cancellationToken = default)
     {
-        return await _db.Users.FindAsync(id, cancellationToken);
+        return await _db.Users.FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
     }
 
-    public async Task<User?> GetByKeycloakIdAsync(string keycloakId, CancellationToken cancellationToken = default)
+    public async Task<User?> FindByKeycloakIdAsync(string keycloakId, CancellationToken cancellationToken = default)
     {
         return await _db.Users
             .AsNoTracking()

@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Authorization;
 using UserService.DTOs;
 using UserService.Services;
 using Common.DTOs;
+using System.IdentityModel.Tokens.Jwt;
+using Common.Exceptions;
 
 namespace UserService.Controllers;
 
@@ -18,8 +20,8 @@ public class AuthController(AuthService authService) : ControllerBase
     {
         var loginResponse = await _authService.RegisterAsync(dto, cancellationToken);
         var response = HttpApiResponseDto<AuthResponseDto>.Success(
-          loginResponse,
-          "Register successful"
+            loginResponse,
+            "Register successful"
         );
 
         return Ok(response);
@@ -30,8 +32,8 @@ public class AuthController(AuthService authService) : ControllerBase
     {
         var loginResponse = await _authService.LoginAsync(dto, cancellationToken);
         var response = HttpApiResponseDto<AuthResponseDto>.Success(
-          loginResponse,
-          "Login successful"
+            loginResponse,
+            "Login successful"
         );
 
         return Ok(response);
@@ -43,8 +45,8 @@ public class AuthController(AuthService authService) : ControllerBase
     {
         await _authService.LogoutAsync(dto, cancellationToken);
         var response = HttpApiResponseDto<object>.Success(
-          null,
-          "Logout successful"
+            null,
+            "Logout successful"
         );
 
         return Ok(response);
@@ -55,8 +57,8 @@ public class AuthController(AuthService authService) : ControllerBase
     {
         var refreshResponse = await _authService.RefreshTokenAsync(dto, cancellationToken);
         var response = HttpApiResponseDto<AuthResponseDto>.Success(
-          refreshResponse,
-          "Token refresh successful"
+            refreshResponse,
+            "Token refresh successful"
         );
 
         return Ok(response);
@@ -66,13 +68,20 @@ public class AuthController(AuthService authService) : ControllerBase
     [Authorize]
     public async Task<IActionResult> UserInfo(CancellationToken cancellationToken)
     {
-        var keycloakId = User.FindFirstValue("sub");
-        var userResponse = await _authService.UserInfoAsync(keycloakId ?? string.Empty, cancellationToken);
+        var keycloakId = GetCurrentKeycloakId();
+        var userResponse = await _authService.UserInfoAsync(keycloakId, cancellationToken);
         var response = HttpApiResponseDto<UserResponseDto>.Success(
-          userResponse,
-          "Get user info successful"
+            userResponse,
+            "Get user info successful"
         );
 
         return Ok(response);
+    }
+
+    private string GetCurrentKeycloakId()
+    {
+        var keycloakId = User.FindFirstValue(JwtRegisteredClaimNames.Sub)
+            ?? throw new UnauthorizedException("Invalid access token");
+        return keycloakId;
     }
 }

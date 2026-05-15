@@ -58,7 +58,7 @@ public class AuthService(UserRepository userRepo, KeycloakProvider keycloakProvi
         if (string.IsNullOrWhiteSpace(keycloakId))
             throw new UnauthorizedException("Invalid access token");
 
-        var user = await _userRepo.GetByKeycloakIdAsync(keycloakId, cancellationToken) ?? 
+        var user = await _userRepo.FindByKeycloakIdAsync(keycloakId, cancellationToken) ?? 
             throw new NotFoundException("User not found");
 
         return new UserResponseDto(
