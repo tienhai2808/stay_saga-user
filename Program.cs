@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using UserService.Configs;
 using UserService.Data;
 using UserService.Providers;
 using UserService.Repositories;
@@ -11,6 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSnowflakeIdGenerator(builder.Configuration);
 builder.Services.AddApiControllers();
 builder.Services.AddOpenApi();
+builder.Services.AddSingleton(KeycloakConfigsLoader.LoadAndValidate(builder.Configuration));
 builder.Services.AddKeycloakJwtAuth(builder.Configuration);
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(

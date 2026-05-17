@@ -1,19 +1,20 @@
 using System.Text.Json;
 using UserService.DTOs;
 using Common.Exceptions;
+using UserService.Configs;
 
 namespace UserService.Providers;
 
-public class KeycloakProvider(HttpClient httpClient, IConfiguration config)
+public class KeycloakProvider(HttpClient httpClient, KeycloakConfigs keycloakConfigs)
 {
     private readonly HttpClient _httpClient = httpClient;
-    private readonly IConfiguration _config = config;
+    private readonly KeycloakConfigs _keycloakConfigs = keycloakConfigs;
 
     public async Task<string> CreateUserAsync(string email, string password, string firstName, string lastName)
     {
         var token = await GetAdminTokenAsync();
-        var realm = GetRequiredConfig("Keycloak:Realm");
-        var adminUrl = GetRequiredConfig("Keycloak:AdminUrl");
+        var realm = _keycloakConfigs.Realm;
+        var adminUrl = _keycloakConfigs.AdminUrl;
         var request = new HttpRequestMessage(HttpMethod.Post, $"{adminUrl}/admin/realms/{realm}/users");
         request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
         request.Content = JsonContent.Create(new
@@ -54,10 +55,10 @@ public class KeycloakProvider(HttpClient httpClient, IConfiguration config)
 
     public async Task<AuthResponseDto> LoginAsync(string email, string password, CancellationToken cancellationToken = default)
     {
-        var realm = GetRequiredConfig("Keycloak:Realm");
-        var adminUrl = GetRequiredConfig("Keycloak:AdminUrl");
-        var clientId = GetRequiredConfig("Keycloak:ClientId");
-        var clientSecret = GetRequiredConfig("Keycloak:ClientSecret");
+        var realm = _keycloakConfigs.Realm;
+        var adminUrl = _keycloakConfigs.AdminUrl;
+        var clientId = _keycloakConfigs.ClientId;
+        var clientSecret = _keycloakConfigs.ClientSecret;
 
         HttpResponseMessage response;
         try
@@ -99,10 +100,10 @@ public class KeycloakProvider(HttpClient httpClient, IConfiguration config)
 
     public async Task LogoutAsync(string refreshToken, CancellationToken cancellationToken = default)
     {
-        var realm = GetRequiredConfig("Keycloak:Realm");
-        var adminUrl = GetRequiredConfig("Keycloak:AdminUrl");
-        var clientId = GetRequiredConfig("Keycloak:ClientId");
-        var clientSecret = GetRequiredConfig("Keycloak:ClientSecret");
+        var realm = _keycloakConfigs.Realm;
+        var adminUrl = _keycloakConfigs.AdminUrl;
+        var clientId = _keycloakConfigs.ClientId;
+        var clientSecret = _keycloakConfigs.ClientSecret;
 
         HttpResponseMessage response;
         try
@@ -134,10 +135,10 @@ public class KeycloakProvider(HttpClient httpClient, IConfiguration config)
 
     public async Task<AuthResponseDto> RefreshTokenAsync(string refreshToken, CancellationToken cancellationToken = default)
     {
-        var realm = GetRequiredConfig("Keycloak:Realm");
-        var adminUrl = GetRequiredConfig("Keycloak:AdminUrl");
-        var clientId = GetRequiredConfig("Keycloak:ClientId");
-        var clientSecret = GetRequiredConfig("Keycloak:ClientSecret");
+        var realm = _keycloakConfigs.Realm;
+        var adminUrl = _keycloakConfigs.AdminUrl;
+        var clientId = _keycloakConfigs.ClientId;
+        var clientSecret = _keycloakConfigs.ClientSecret;
 
         HttpResponseMessage response;
         try
@@ -178,10 +179,10 @@ public class KeycloakProvider(HttpClient httpClient, IConfiguration config)
 
     private async Task<string> GetAdminTokenAsync(CancellationToken cancellationToken = default)
     {
-        var realm = GetRequiredConfig("Keycloak:Realm");
-        var adminUrl = GetRequiredConfig("Keycloak:AdminUrl");
-        var clientId = GetRequiredConfig("Keycloak:AdminClientId");
-        var clientSecret = GetRequiredConfig("Keycloak:AdminClientSecret");
+        var realm = _keycloakConfigs.Realm;
+        var adminUrl = _keycloakConfigs.AdminUrl;
+        var clientId = _keycloakConfigs.AdminClientId;
+        var clientSecret = _keycloakConfigs.AdminClientSecret;
 
         HttpResponseMessage response;
         try
@@ -238,12 +239,4 @@ public class KeycloakProvider(HttpClient httpClient, IConfiguration config)
         return value;
     }
 
-    private string GetRequiredConfig(string key)
-    {
-        var value = _config[key];
-        if (string.IsNullOrWhiteSpace(value))
-            throw new HttpException("INTERNAL_ERROR", $"Missing required configuration: {key}", 500);
-
-        return value;
-    }
 }
