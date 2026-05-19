@@ -56,8 +56,7 @@ jobs:
             --nologo \
             -p:NuGetAudit=true \
             -p:NuGetAuditMode=all \
-            -p:NuGetAuditLevel=high \
-            -p:WarningsAsErrors=NU1903,NU1904
+            -p:NuGetAuditLevel=high
 
       - name: Build
         run: |
